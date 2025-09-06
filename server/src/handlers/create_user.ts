@@ -1,16 +1,27 @@
+import { db } from '../db';
+import { usersTable } from '../db/schema';
 import { type CreateUserInput, type User } from '../schema';
 
 export const createUser = async (input: CreateUserInput): Promise<User> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is creating a new user (admin, teacher, student, or parent) 
-  // and persisting it in the database with proper password hashing.
-  return Promise.resolve({
-    id: 0, // Placeholder ID
-    email: input.email,
-    password: input.password, // In real implementation, this should be hashed
-    name: input.name,
-    role: input.role,
-    created_at: new Date(),
-    updated_at: new Date()
-  } as User);
+  try {
+    // Hash the password using Bun's built-in password hashing
+    const hashedPassword = await Bun.password.hash(input.password);
+
+    // Insert user record
+    const result = await db.insert(usersTable)
+      .values({
+        email: input.email,
+        password: hashedPassword,
+        name: input.name,
+        role: input.role
+      })
+      .returning()
+      .execute();
+
+    const user = result[0];
+    return user;
+  } catch (error) {
+    console.error('User creation failed:', error);
+    throw error;
+  }
 };

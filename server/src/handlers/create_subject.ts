@@ -1,13 +1,22 @@
+import { db } from '../db';
+import { subjectsTable } from '../db/schema';
 import { type CreateSubjectInput, type Subject } from '../schema';
 
 export const createSubject = async (input: CreateSubjectInput): Promise<Subject> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is creating a new subject/mata pelajaran
-  // and persisting it in the database.
-  return Promise.resolve({
-    id: 0, // Placeholder ID
-    name: input.name,
-    code: input.code,
-    created_at: new Date()
-  } as Subject);
+  try {
+    // Insert subject record
+    const result = await db.insert(subjectsTable)
+      .values({
+        name: input.name,
+        code: input.code
+      })
+      .returning()
+      .execute();
+
+    const subject = result[0];
+    return subject;
+  } catch (error) {
+    console.error('Subject creation failed:', error);
+    throw error;
+  }
 };
